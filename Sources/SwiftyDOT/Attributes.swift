@@ -13,6 +13,7 @@ public struct NodeAttributes: Hashable {
 	public var label: String?
 	public var peripheries: Int?
 	public var style: NodeStyle?
+	public var shape: NodeShape?
 }
 
 public struct EdgeAttributes: Hashable {

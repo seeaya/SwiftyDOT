@@ -34,20 +34,23 @@ extension Graph {
 		and second: Node,
 		value: EdgeValue
 	) -> UndirectedEdge {
-		guard first.graph === self && second.graph === self else {
-			fatalError("Trying to add edge between nodes not in this graph")
-		}
-		let edge = UndirectedEdge(first: first, second: second, value: value)
-		undirectedEdges.insert(edge)
-		first.undirectedEdges.insert(PartialEdge(other: second, value: value))
-		second.undirectedEdges.insert(PartialEdge(other: first, value: value))
-		undirectedEdgeAttributes[edge] = EdgeAttributes()
-		return edge
+		return insertUndirectedEdge(UndirectedEdge(first: first, second: second, value: value))
 	}
 	
 	@discardableResult
 	public func insertUndirectedEdge(_ edge: UndirectedEdge) -> UndirectedEdge {
-		return insertUndirectedEdge(between: edge.first, and: edge.second, value: edge.value)
+		guard edge.first.graph === self && edge.second.graph === self else {
+			fatalError("Trying to add edge between nodes not in this graph")
+		}
+		
+		if !undirectedEdges.contains(edge) {
+			undirectedEdges.insert(edge)
+			undirectedEdgeAttributes[edge] = edge._attributes
+		}
+		
+		edge.first.undirectedEdges.insert(PartialEdge(primary: edge.first, other: edge.second, value: edge.value, incoming: nil))
+		edge.second.undirectedEdges.insert(PartialEdge(primary: edge.second, other: edge.first, value: edge.value, incoming: nil))
+		return edge
 	}
 	
 	@discardableResult
@@ -56,20 +59,23 @@ extension Graph {
 		to destination: Node,
 		value: EdgeValue
 	) -> DirectedEdge {
-		guard source.graph === self && destination.graph === self else {
-			fatalError("Trying to add edge between nodes not in this graph")
-		}
-		let edge = DirectedEdge(source: source, destination: destination, value: value)
-		directedEdges.insert(edge)
-		source.outgoingEdges.insert(PartialEdge(other: destination, value: value))
-		destination.incomingEdges.insert(PartialEdge(other: source, value: value))
-		directedEdgeAttributes[edge] = EdgeAttributes()
-		return edge
+		return insertDirectedEdge(DirectedEdge(source: source, destination: destination, value: value))
 	}
 	
 	@discardableResult
 	public func insertDirectedEdge(_ edge: DirectedEdge) -> DirectedEdge {
-		return insertDirectedEdge(from: edge.source, to: edge.destination, value: edge.value)
+		guard edge.source.graph === self && edge.destination.graph === self else {
+			fatalError("Trying to add edge between nodes not in this graph")
+		}
+		
+		if !directedEdges.contains(edge) {
+			directedEdges.insert(edge)
+			directedEdgeAttributes[edge] = edge._attributes
+		}
+		
+		edge.source.outgoingEdges.insert(PartialEdge(primary: edge.source, other: edge.destination, value: edge.value, incoming: true))
+		edge.destination.incomingEdges.insert(PartialEdge(primary: edge.destination, other: edge.source, value: edge.value, incoming: false))
+		return edge
 	}
 }
 
@@ -94,8 +100,8 @@ extension Graph {
 	public func removeUndirectedEdge(_ edge: UndirectedEdge) {
 		guard edge.first.graph === self && edge.second.graph === self else { return }
 		undirectedEdges.remove(edge)
-		edge.first.undirectedEdges.remove(PartialEdge(other: edge.second, value: edge.value))
-		edge.second.undirectedEdges.remove(PartialEdge(other: edge.first, value: edge.value))
+		edge.first.undirectedEdges.remove(PartialEdge(primary: edge.first, other: edge.second, value: edge.value, incoming: nil))
+		edge.second.undirectedEdges.remove(PartialEdge(primary: edge.second, other: edge.first, value: edge.value, incoming: nil))
 	}
 	
 	public func removeUndirectedEdge(between first: Node, and second: Node, value: EdgeValue) {
@@ -112,8 +118,8 @@ extension Graph {
 	public func removeDirectedEdge(_ edge: DirectedEdge) {
 		guard edge.source.graph === self && edge.destination.graph === self else { return }
 		directedEdges.remove(edge)
-		edge.source.outgoingEdges.remove(PartialEdge(other: edge.destination, value: edge.value))
-		edge.destination.incomingEdges.remove(PartialEdge(other: edge.source, value: edge.value))
+		edge.source.outgoingEdges.remove(PartialEdge(primary: edge.source, other: edge.destination, value: edge.value, incoming: true))
+		edge.destination.incomingEdges.remove(PartialEdge(primary: edge.destination, other: edge.source, value: edge.value, incoming: false))
 	}
 	
 	public func removeDirectedEdge(from source: Node, to destination: Node, value: EdgeValue) {
@@ -166,7 +172,9 @@ extension Graph {
 			let style = attributeString(forAttribute: "style",
 																	value: node.attributes.style?.rawValue)
 			
-			let attributes = [color, fontColor, peripheries, style].joined(separator: "")
+			let shape = attributeString(forAttribute: "shape", value: node.attributes.shape?.rawValue)
+			
+			let attributes = [color, fontColor, peripheries, style, shape].joined(separator: "")
 			
 			dot += "    \(node.dotID) [label=\"\(label)\"\(attributes)]\n"
 		}
