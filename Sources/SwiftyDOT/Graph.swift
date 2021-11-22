@@ -95,6 +95,8 @@ extension Graph {
 		for edge in node.incomingEdges {
 			removeDirectedEdge(DirectedEdge(source: edge.other, destination: node, value: edge.value))
 		}
+		
+		nodes.remove(node)
 	}
 	
 	public func removeUndirectedEdge(_ edge: UndirectedEdge) {
