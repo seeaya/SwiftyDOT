@@ -44,6 +44,7 @@ extension Graph {
 	}
 }
 
+// MARK: Hashable
 extension Graph.Node: Hashable {
 	public static func ==(lhs: Graph<NodeValue, EdgeValue>.Node, rhs: Graph<NodeValue, EdgeValue>.Node) -> Bool {
 		lhs.id == rhs.id
@@ -51,5 +52,13 @@ extension Graph.Node: Hashable {
 	
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(id)
+	}
+}
+
+// MARK: Node Insertion
+extension Graph.Node {
+	@discardableResult
+	public func insertUndirectedEdge(between node: Graph.Node, value: EdgeValue) -> Graph.UndirectedEdge {
+		return graph.insertUndirectedEdge(between: self, and: node, value: value)
 	}
 }

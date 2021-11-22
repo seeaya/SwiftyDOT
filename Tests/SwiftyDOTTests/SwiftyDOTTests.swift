@@ -41,4 +41,28 @@ final class SwiftyDOTTests: XCTestCase {
 		print(dot)
 		
 	}
+	
+	func testTree() {
+		let g = Graph<String, String?>()
+		let root = g.insertNode(value: "Root")
+		
+		func addChildren(node: Graph<String, String?>.Node, levels: Int, number: Int) {
+			guard levels > 0 else { return }
+			for index in 0..<number {
+				let child = g.insertNode(value: "\(index + 1)")
+				g.insertDirectedEdge(from: node, to: child, value: nil)
+				addChildren(node: child, levels: levels - 1, number: number)
+			}
+		}
+		
+		addChildren(node: root, levels: 4, number: 4)
+		
+		let dot = g.toDOT { nodeValue in
+			nodeValue
+		} labelForEdgeValue: { edgeValue in
+			edgeValue ?? ""
+		}
+		
+		print(dot)
+	}
 }
