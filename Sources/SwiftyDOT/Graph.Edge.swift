@@ -76,8 +76,8 @@ extension Graph {
 		}
 		
 		public static func ==(lhs: Self, rhs: Self) -> Bool {
-			lhs.value == rhs.value && ((lhs.first == rhs.first && lhs.first == rhs.first)
-																 || lhs.first == rhs.second && lhs.second == rhs.first)
+			lhs.value == rhs.value && ((lhs.first == rhs.first && lhs.second == rhs.second)
+																 || (lhs.first == rhs.second && lhs.second == rhs.first))
 		}
 		
 		public func hash(into hasher: inout Hasher) {
@@ -98,8 +98,8 @@ extension Graph {
 		public internal(set) var value: EdgeValue
 		
 		@Reference var _attributes = EdgeAttributes()
-		var _primary: Node
-		var _incoming: Bool?
+		private var _primary: Node
+		private var _incoming: Bool?
 		weak var _graph: Graph?
 		
 		init(primary: Node, other: Node, value: EdgeValue, incoming: Bool?) {
